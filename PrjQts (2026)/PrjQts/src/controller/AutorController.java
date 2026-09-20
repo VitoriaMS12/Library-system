@@ -16,8 +16,21 @@ public class AutorController {
         if (nome == null || nome.trim().isEmpty()) {
             return "O nome do autor é obrigatório.";
         }
-        AutorModel autor = new AutorModel(0, nome.trim(), sobrenome.trim(), nacionalidade.trim());
-        return autorDAO.inserir(autor) ? "SUCESSO" : "Erro ao cadastrar autor no banco de dados.";
+        
+        if (sobrenome == null || sobrenome.trim().isEmpty()) {
+            return "O sobrenome do autor é obrigatório.";
+        }
+        
+        AutorModel autor = new AutorModel(
+                0, 
+                nome.trim(), 
+                sobrenome.trim(), 
+                nacionalidade == null ? "" : nacionalidade.trim()
+        );
+        
+        return autorDAO.inserir(autor) 
+                ? "SUCESSO" 
+                : "Erro ao cadastrar autor no banco de dados.";
     }
 
     public List<Object[]> listarParaTabela() {
@@ -28,18 +41,60 @@ public class AutorController {
         }
         return dados;
     }
+    
+    public List<Object[]> consultarParaTabela(
+        String nome,
+        String sobrenome,
+        String nacionalidade) {
+
+    List<AutorModel> lista = autorDAO.consultar(
+        nome,
+        sobrenome,
+        nacionalidade
+    );
+
+    List<Object[]> dadosTabela = new ArrayList<>();
+
+    for (AutorModel l : lista) {
+        dadosTabela.add(new Object[]{
+            l.getId(),
+            l.getNome(),
+            l.getSobrenome(),
+            l.getNacionalidade()
+        });
+    }
+
+    return dadosTabela;
+}
 
     public String atualizar(String idStr, String nome, String sobrenome, String nacionalidade) {
+        
         if (idStr == null || idStr.trim().isEmpty()) {
             return "Selecione um autor na tabela.";
         }
+        
         if (nome == null || nome.trim().isEmpty()) {
             return "O nome do autor é obrigatório.";
         }
+        
+        if (sobrenome == null || sobrenome.trim().isEmpty()) {
+            return "O sobrenome do autor é obrigatório.";
+        }
+        
         try {
             int id = Integer.parseInt(idStr.trim());
-            AutorModel autor = new AutorModel(id, nome.trim(), sobrenome.trim(), nacionalidade.trim());
-            return autorDAO.atualizar(autor) ? "SUCESSO" : "Erro ao atualizar autor.";
+            
+            AutorModel autor = new AutorModel(
+                    id, 
+                    nome.trim(), 
+                    sobrenome.trim(), 
+                    nacionalidade == null ? "" : nacionalidade.trim()
+            );
+            
+            return autorDAO.atualizar(autor) 
+                    ? "SUCESSO" 
+                    : "Erro ao atualizar autor.";
+        
         } catch (NumberFormatException e) {
             return "ID inválido.";
         }

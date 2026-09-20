@@ -125,9 +125,24 @@ public class Autor extends JDialog {
         });
 
         btnConsultar.addActionListener(e -> {
-            atualizarTabela();
+            String nome = txtNome.getText().trim();
+            String sobrenome = txtSobrenome.getText().trim();
+            String nacionalidade = txtNacionalidade.getText().trim();
+            
+            modeloTabela.setRowCount(0);
+            
+            List<Object[]> dados = controller.consultarParaTabela(nome, sobrenome, nacionalidade);
+            
+            for (Object[] linha : dados) {
+                modeloTabela.addRow(linha);
+            }
+            
+            if (dados.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                this,"Nenhum autor encontrado.");
+            }
+            
             limparCampos();
-            JOptionPane.showMessageDialog(this, "Lista recarregada.");
         });
 
         btnAtualizar.addActionListener(e -> {
@@ -170,4 +185,5 @@ public class Autor extends JDialog {
         txtNacionalidade.setText("");
         tblAutores.clearSelection();
     }
+    
 }

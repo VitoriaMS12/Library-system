@@ -120,9 +120,22 @@ public class Categoria extends JDialog {
         });
 
         btnConsultar.addActionListener(e -> {
-            atualizarTabela();
+            String nome = txtNome.getText().trim();
+            
+            modeloTabela.setRowCount(0);
+            
+            List<Object[]> dados = controller.consultarParaTabela(nome);
+            
+            for (Object[] linha : dados) {
+                modeloTabela.addRow(linha);
+            }
+            
+            if (dados.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                this,"Nenhuma categoria encontrado.");
+            }
+            
             limparCampos();
-            JOptionPane.showMessageDialog(this, "Lista recarregada.");
         });
 
         btnAtualizar.addActionListener(e -> {

@@ -13,25 +13,60 @@ public class LivroController {
         this.livroDAO = new LivroDAO();
     }
 
-    public String cadastrar(String titulo, String isbn, String anoPub, String editora, String qtdStr, String qtdDispStr) {
+
+    public String cadastrar(String titulo, String isbn, String anoPub, String editora, String qtdStr) {
+
         if (titulo == null || titulo.trim().isEmpty()) {
             return "O título do livro é obrigatório.";
         }
 
+        if (isbn == null || isbn.trim().isEmpty()) {
+            return "O ISBN do livro é obrigatório.";
+        }
+
+        if (anoPub == null || anoPub.trim().isEmpty()) {
+            return "O ano de publicação é obrigatório.";
+        }
+
+        if (editora == null || editora.trim().isEmpty()) {
+            return "A editora é obrigatória.";
+        }
+
+        if (qtdStr == null || qtdStr.trim().isEmpty()) {
+            return "A quantidade é obrigatória.";
+        }
+
         try {
             int qtd = Integer.parseInt(qtdStr.trim());
-            int qtdDisp = Integer.parseInt(qtdDispStr.trim());
 
-            LivroModel livro = new LivroModel(0, titulo, isbn, anoPub, editora, qtd, qtdDisp);
+            if (qtd <= 0) {
+                return "A quantidade deve ser maior que zero.";
+            }
+
+            // A quantidade disponível começa igual à quantidade cadastrada
+            int qtdDisp = qtd;
+
+            LivroModel livro = new LivroModel(
+                0,
+                titulo.trim(),
+                isbn.trim(),
+                anoPub.trim(),
+                editora.trim(),
+                qtd,
+                qtdDisp
+            );
+
             if (livroDAO.inserir(livro)) {
                 return "SUCESSO";
             } else {
                 return "Erro ao cadastrar livro no banco de dados.";
             }
+
         } catch (NumberFormatException e) {
-            return "Quantidade e Quantidade Disponível devem ser valores numéricos inteiros válidos.";
+            return "A quantidade deve ser um número inteiro válido.";
         }
     }
+
 
     public List<Object[]> listarParaTabela() {
         List<LivroModel> lista = livroDAO.listar();
@@ -50,23 +85,106 @@ public class LivroController {
         }
         return dadosTabela;
     }
+    
+    public List<Object[]> consultarParaTabela(
+        String titulo,
+        String isbn,
+        String anoPub,
+        String editora) {
 
-    public String atualizar(String idStr, String titulo, String isbn, String anoPub, String editora, String qtdStr, String qtdDispStr) {
+    List<LivroModel> lista = livroDAO.consultar(
+        titulo,
+        isbn,
+        anoPub,
+        editora
+    );
+
+    List<Object[]> dadosTabela = new ArrayList<>();
+
+    for (LivroModel l : lista) {
+        dadosTabela.add(new Object[]{
+            l.getId(),
+            l.getTitulo(),
+            l.getIsbn(),
+            l.getAnoPublicacao(),
+            l.getEditora(),
+            l.getQuantidade(),
+            l.getQuantidadeDisponivel()
+        });
+    }
+
+    return dadosTabela;
+}
+
+    public String atualizar(String idStr, String titulo, String isbn, String anoPub, String editora, String qtdStr) {
+
         if (idStr == null || idStr.trim().isEmpty()) {
             return "Selecione um registro na tabela para atualizar.";
         }
 
+        if (titulo == null || titulo.trim().isEmpty()) {
+            return "O título do livro é obrigatório.";
+        }
+
+        if (isbn == null || isbn.trim().isEmpty()) {
+            return "O ISBN do livro é obrigatório.";
+        }
+
+        if (anoPub == null || anoPub.trim().isEmpty()) {
+            return "O ano de publicação é obrigatório.";
+        }
+
+        if (editora == null || editora.trim().isEmpty()) {
+            return "A editora é obrigatória.";
+        }
+
+        if (qtdStr == null || qtdStr.trim().isEmpty()) {
+            return "A quantidade é obrigatória.";
+        }
+
+
         try {
             int id = Integer.parseInt(idStr.trim());
-            int qtd = Integer.parseInt(qtdStr.trim());
-            int qtdDisp = Integer.parseInt(qtdDispStr.trim());
+            int novaQtd = Integer.parseInt(qtdStr.trim());
 
-            LivroModel livro = new LivroModel(id, titulo, isbn, anoPub, editora, qtd, qtdDisp);
+            if (novaQtd <= 0) {
+                return "A quantidade deve ser maior que zero.";
+            }
+
+            // Busca os dados atuais do livro.
+            LivroModel livroAtual = livroDAO.buscarPorId(id);
+            
+            if (livroAtual == null) {
+                return "Livro não encontrado";
+            }
+            
+            //Quantidade de livros que estão emprestados
+            int emprestados = livroAtual.getQuantidade() - livroAtual.getQuantidadeDisponivel();
+            
+            // Não permite que a nova quantidade seja menor que a quantidade que já está emprestada.
+            if (novaQtd < emprestados) {
+                return "A quantidade não pode ser menor que a quantidade de livros emprestados.";
+            }
+            
+            // Mantém a quantidade de livros emprestados.
+            int novaQtdDisp = novaQtd - emprestados;
+            
+            LivroModel livro = new LivroModel (
+            id,
+            titulo.trim(),
+            isbn.trim(),
+            anoPub.trim(),
+            editora.trim(),
+            novaQtd,
+            novaQtdDisp
+            );
+            
             if (livroDAO.atualizar(livro)) {
-                return "SUCESSO";
+                return "SUCESSO!";
             } else {
                 return "Erro ao atualizar livro no banco de dados.";
             }
+            
         } catch (NumberFormatException e) {
             return "Preencha os campos numéricos corretamente.";
         }

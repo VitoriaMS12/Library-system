@@ -14,7 +14,7 @@ import java.util.List;
 public class Livro extends JDialog {
     private JTextField txtId, txtTitulo, txtEditora;
     private JFormattedTextField txtIsbn, txtAnoPub, txtQtd, txtQtdDisp;
-    private MaskFormatter maskIsbn, maskAno, maskQtd;
+    private MaskFormatter maskIsbn, maskAno;
 
     private JTable tblLivros;
     private DefaultTableModel modeloTabela;
@@ -47,16 +47,18 @@ public class Livro extends JDialog {
             maskAno = new MaskFormatter("####");
             maskAno.setValueContainsLiteralCharacters(false);
 
-            maskQtd = new MaskFormatter("#####");
-            maskQtd.setValueContainsLiteralCharacters(false);
+          /*  maskQtd = new MaskFormatter("#####");
+            maskQtd.setValueContainsLiteralCharacters(false);*/
         } catch (ParseException e) {
             JOptionPane.showMessageDialog(this, "Erro nas máscaras: " + e.getMessage());
         }
 
         txtIsbn = new JFormattedTextField(maskIsbn);
         txtAnoPub = new JFormattedTextField(maskAno);
-        txtQtd = new JFormattedTextField(maskQtd);
-        txtQtdDisp = new JFormattedTextField(maskQtd);
+        txtQtd = new JFormattedTextField(/*maskQtd*/);
+        txtQtdDisp = new JFormattedTextField(/*maskQtd*/);
+        
+        txtQtdDisp.setEditable(false);
 
         configurarFormulario();
         configurarTabela();
@@ -177,8 +179,7 @@ public class Livro extends JDialog {
                 txtIsbn.getText(),
                 txtAnoPub.getText(),
                 txtEditora.getText(),
-                txtQtd.getText(),
-                txtQtdDisp.getText()
+                txtQtd.getText()
             );
 
             if ("SUCESSO".equals(resp)) {
@@ -191,11 +192,50 @@ public class Livro extends JDialog {
         });
 
         btnConsultar.addActionListener(e -> {
-            atualizarTabela();
-            limparCampos();
-            JOptionPane.showMessageDialog(this, "Tabela de livros recarregada.");
-        });
 
+            String titulo = txtTitulo.getText().trim();
+
+            String isbn = txtIsbn.getText().trim();
+    
+            if (/*isbn.equals("---") || */ isbn.replaceAll("[^0-9]", "").isEmpty()) {
+               isbn = "";
+            }
+
+            String ano = txtAnoPub.getText()
+                .replaceAll("\\s+", "")
+                .trim();
+
+            String editora = txtEditora.getText().trim();
+
+            System.out.println("TITULO = [" + titulo + "]");
+            System.out.println("ISBN = [" + isbn + "]");
+            System.out.println("ANO = [" + ano + "]");
+            System.out.println("EDITORA = [" + editora + "]");
+
+            modeloTabela.setRowCount(0);
+
+            List<Object[]> dados = controller.consultarParaTabela(
+               titulo,
+               isbn,
+               ano,
+               editora
+            );
+
+            for (Object[] linha : dados) {
+               modeloTabela.addRow(linha);
+            }
+
+            if (dados.isEmpty()) {
+              JOptionPane.showMessageDialog(
+              this,
+              "Nenhum livro encontrado."
+                );
+            }
+
+            limparPesquisa();
+        });
+        
+        
         btnAtualizar.addActionListener(e -> {
             String resp = controller.atualizar(
                 txtId.getText(),
@@ -203,8 +243,7 @@ public class Livro extends JDialog {
                 txtIsbn.getText(),
                 txtAnoPub.getText(),
                 txtEditora.getText(),
-                txtQtd.getText(),
-                txtQtdDisp.getText()
+                txtQtd.getText()
             );
 
             if ("SUCESSO".equals(resp)) {
@@ -250,8 +289,15 @@ public class Livro extends JDialog {
         txtIsbn.setValue(null);
         txtAnoPub.setValue(null);
         txtEditora.setText("");
-        txtQtd.setValue(null);
-        txtQtdDisp.setValue(null);
+        txtQtd.setValue(""); // era null e troque po "".
+        txtQtdDisp.setValue(""); // era null e troque po "".
         tblLivros.clearSelection();
+    }
+    
+    private void limparPesquisa() {
+        txtTitulo.setText("");
+        txtIsbn.setText(null);
+        txtAnoPub.setText(null);
+        txtEditora.setText("");
     }
 }

@@ -42,6 +42,49 @@ public class CategoriaDAO {
         }
         return lista;
     }
+    
+    public List<CategoriaModel> consultar(String nome) {
+    List<CategoriaModel> lista = new ArrayList<>();
+
+    String sql;
+    String valor;
+
+    if (!nome.trim().isEmpty()) {
+
+        sql = "SELECT * FROM Categoria WHERE nome_Categoria LIKE ?";
+        valor = "%" + nome.trim() + "%";
+
+    } else {
+
+        sql = "SELECT * FROM Categoria";
+        valor = null;
+    }
+
+    try (Connection conn = Conexao.getConexao();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        if (valor != null) {
+            stmt.setString(1, valor);
+        }
+
+        ResultSet rs = stmt.executeQuery();
+
+        while (rs.next()) {
+            CategoriaModel categoria = new CategoriaModel();
+
+            categoria.setId(rs.getInt("idCategoria"));
+            categoria.setNome(rs.getString("nome_Categoria"));
+            categoria.setDescricao(rs.getString("Descricao_categoria"));
+
+            lista.add(categoria);
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return lista;
+}
 
     public boolean atualizar(CategoriaModel cat) {
         String sql = "UPDATE Categoria SET nome_Categoria = ?, Descricao_categoria = ? WHERE idCategoria = ?";

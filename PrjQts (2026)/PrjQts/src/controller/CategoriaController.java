@@ -16,6 +16,10 @@ public class CategoriaController {
         if (nome == null || nome.trim().isEmpty()) {
             return "O nome da categoria é obrigatório.";
         }
+        if (descricao == null || descricao.trim().isEmpty()) {
+            return "A descrição da categoria  é obrigatória.";
+        }
+                
         CategoriaModel cat = new CategoriaModel(0, nome.trim(), descricao.trim());
         return categoriaDAO.inserir(cat) ? "SUCESSO" : "Erro ao cadastrar categoria.";
     }
@@ -28,13 +32,41 @@ public class CategoriaController {
         }
         return dados;
     }
+    
+    public List<Object[]> consultarParaTabela(
+        String nome) {
+
+    List<CategoriaModel> lista = categoriaDAO.consultar(
+        nome
+    );
+
+    List<Object[]> dadosTabela = new ArrayList<>();
+
+    for (CategoriaModel l : lista) {
+        dadosTabela.add(new Object[]{
+            l.getId(),
+            l.getNome(),
+            l.getDescricao()
+        });
+    }
+
+    return dadosTabela;
+}
 
     public String atualizar(String idStr, String nome, String descricao) {
-        if (idStr == null || idStr.trim().isEmpty()) return "Selecione uma categoria.";
-        if (nome == null || nome.trim().isEmpty()) return "O nome é obrigatório.";
+        if (idStr == null || idStr.trim().isEmpty()) 
+            return "Selecione uma categoria.";
+        
+        if (nome == null || nome.trim().isEmpty()) 
+            return "O nome é obrigatório.";
+        
+        if (descricao == null || descricao.trim().isEmpty()) {
+            return "A descrição é obrigatória.";
+        }
 
         try {
             int id = Integer.parseInt(idStr.trim());
+            
             CategoriaModel cat = new CategoriaModel(id, nome.trim(), descricao.trim());
             return categoriaDAO.atualizar(cat) ? "SUCESSO" : "Erro ao atualizar categoria.";
         } catch (NumberFormatException e) {

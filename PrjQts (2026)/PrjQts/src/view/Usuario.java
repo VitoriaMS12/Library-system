@@ -12,6 +12,7 @@ import java.util.List;
 public class Usuario extends JDialog {
     private JTextField txtId, txtNome, txtSobrenome, txtEmail, txtTelefone;
     private JComboBox<String> cbxStatus;
+    private JComboBox<String> cbxStatusConsulta;
     private JTable tblUsuarios;
     private DefaultTableModel modeloTabela;
     private JButton btnCadastrar, btnConsultar, btnAtualizar, btnExcluir, btnSair;
@@ -34,6 +35,7 @@ public class Usuario extends JDialog {
         txtEmail = new JTextField();
         txtTelefone = new JTextField();
         cbxStatus = new JComboBox<>(new String[]{"Ativo", "Inativo", "Bloqueado"});
+        cbxStatusConsulta = new JComboBox<>(new String[]{"Todos", "Ativo", "Inativo", "Bloqueado"});
 
         configurarFormulario();
         configurarTabela();
@@ -79,6 +81,12 @@ public class Usuario extends JDialog {
         add(lblStatus);
         cbxStatus.setBounds(110, 125, 120, 25);
         add(cbxStatus);
+        
+        JLabel lblStatusConsulta = new JLabel("Consultar por status:");
+        lblStatusConsulta.setBounds(350, 125, 140, 25);
+        add(lblStatusConsulta);
+        cbxStatusConsulta.setBounds(490, 125, 120, 25);
+        add(cbxStatusConsulta);
     }
 
     private void configurarTabela() {
@@ -140,15 +148,43 @@ public class Usuario extends JDialog {
 
         btnCadastrar.addActionListener(e -> {
             String res = controller.cadastrar(
-                txtNome.getText(), txtSobrenome.getText(), txtEmail.getText(), txtTelefone.getText(), cbxStatus.getSelectedItem().toString()
+                txtNome.getText(), 
+                txtSobrenome.getText(), 
+                txtEmail.getText(), 
+                txtTelefone.getText(), 
+                cbxStatus.getSelectedItem().toString()
             );
             processarResposta(res, "Usuário cadastrado!");
         });
 
         btnConsultar.addActionListener(e -> {
-            atualizarTabela();
+            String nome = txtNome.getText().trim();
+            String sobrenome = txtSobrenome.getText().trim();
+            String email = txtEmail.getText().trim();
+            String telefone = txtTelefone.getText().trim();
+            
+            String status = cbxStatusConsulta.getSelectedItem().toString();
+            
+            if (status.equals("Todos")) {
+                status = "";
+            }
+            
+            
+            
+            modeloTabela.setRowCount(0);
+            
+            List<Object[]> dados = controller.consultarParaTabela(nome, sobrenome, email, telefone, status);
+            
+            for (Object[] linha : dados) {
+                modeloTabela.addRow(linha);
+            }
+            
+            if (dados.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                this,"Nenhum usuário encontrado.");
+            }
+            
             limparCampos();
-            JOptionPane.showMessageDialog(this, "Lista recarregada.");
         });
 
         btnAtualizar.addActionListener(e -> {
@@ -193,6 +229,7 @@ public class Usuario extends JDialog {
         txtEmail.setText("");
         txtTelefone.setText("");
         cbxStatus.setSelectedIndex(0);
+        cbxStatusConsulta.setSelectedIndex(0);
         tblUsuarios.clearSelection();
     }
 }

@@ -44,6 +44,60 @@ public class AutorDAO {
         }
         return lista;
     }
+    
+    public List<AutorModel> consultar(String nome, String sobrenome, String nacionalidade) {
+    List<AutorModel> lista = new ArrayList<>();
+
+    String sql;
+    String valor;
+
+    if (!nome.trim().isEmpty()) {
+
+        sql = "SELECT * FROM Autor WHERE Nome_autor LIKE ?";
+        valor = "%" + nome.trim() + "%";
+
+    } else if (!sobrenome.trim().isEmpty()) {
+
+        sql = "SELECT * FROM Autor WHERE Sobrenome_autor LIKE ?";
+        valor = "%" + sobrenome.trim() + "%";
+
+    } else if (!nacionalidade.trim().isEmpty()) {
+
+        sql = "SELECT * FROM Autor WHERE Nacionalidade_autor = ?";
+        valor = nacionalidade.trim();
+
+    } else {
+
+        sql = "SELECT * FROM Autor";
+        valor = null;
+    }
+
+    try (Connection conn = Conexao.getConexao();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        if (valor != null) {
+            stmt.setString(1, valor);
+        }
+
+        ResultSet rs = stmt.executeQuery();
+
+        while (rs.next()) {
+            AutorModel autor = new AutorModel();
+
+            autor.setId(rs.getInt("idAutor"));
+            autor.setNome(rs.getString("Nome_autor"));
+            autor.setSobrenome(rs.getString("Sobrenome_autor"));
+            autor.setNacionalidade(rs.getString("Nacionalidade_autor"));
+
+            lista.add(autor);
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return lista;
+}
 
     public boolean atualizar(AutorModel autor) {
         String sql = "UPDATE Autor SET Nome_autor = ?, Sobrenome_autor = ?, Nacionalidade_autor = ? WHERE idAutor = ?";
